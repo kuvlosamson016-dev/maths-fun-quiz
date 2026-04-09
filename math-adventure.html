@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE CHOSEN ONE - Math Adventure Journey</title>
+    <link rel="stylesheet" href="assets/bootstrap-5.0.2-dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        h1, h2, h3, .title-text {
+            font-family: 'Fredoka One', cursive;
+        }
+        .game-title {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .adventure-map {
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%232d4a3e" width="100" height="100"/></svg>');
+            background-size: cover;
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+        }
+        .progress-path {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            padding: 20px 0;
+        }
+        .progress-path::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, #ffd700, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            border-radius: 4px;
+            z-index: 0;
+        }
+        .land {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+            border: 4px solid white;
+        }
+        .land:hover { transform: scale(1.1); }
+        .land.locked { opacity: 0.5; filter: grayscale(100%); cursor: not-allowed; }
+        .land.unlocked { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+        .land.current { animation: pulse 1.5s infinite; }
+        .land-label {
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 5px;
+            text-align: center;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+            50% { box-shadow: 0 0 40px rgba(255, 215, 0, 1); }
+        }
+        .avatar-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            cursor: pointer;
+            font-size: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        .avatar:hover, .avatar.selected {
+            border-color: #ffd700;
+            transform: scale(1.1);
+        }
+        .player-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .player-avatar {
+            font-size: 48px;
+        }
+        .progress-bar-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 5px;
+            margin: 10px 0;
+        }
+        .progress-bar-fill {
+            height: 30px;
+            border-radius: 15px;
+            background: linear-gradient(90deg, #11998e, #38ef7d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: width 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            100% { left: 100%; }
+        }
+        .rocket-progress .progress-bar-fill {
+            background: linear-gradient(90deg, #ff6b6b, #ffd700, #4ecdc4);
+        }
+        .quest-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 10px 0;
+            border-left: 5px solid #ffd700;
+            transition: all 0.3s;
+        }
+        .quest-card:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateX(5px);
+        }
+        .quest-card.completed {
+            border-left-color: #38ef7d;
+            opacity: 0.7;
+        }
+        .mentor-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .mentor-avatar {
+            font-size: 64px;
+        }
+        .mentor-message {
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 15px;
+            position: relative;
+        }
+        .mentor-message::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 20px;
+            border: 10px solid transparent;
+            border-right-color: rgba(255,255,255,0.2);
+        }
+        .game-area {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            min-height: 400px;
+        }
+        .option-btn {
+            width: 100%;
+            margin: 8px 0;
+            padding: 15px 25px;
+            font-size: 18px;
+            border-radius: 15px;
+            transition: all 0.3s;
+        }
+        .option-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .correct { 
+            background: linear-gradient(135deg, #11998e, #38ef7d) !important; 
+            color: white !important; 
+            animation: correctPop 0.5s ease;
+        }
+        .incorrect { 
+            background: linear-gradient(135deg, #eb3349, #f45c43) !important; 
+            color: white !important; 
+            animation: shake 0.5s ease;
+        }
+        @keyframes correctPop {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .timer {
+            font-size: 48px;
+            font-family: 'Fredoka One', cursive;
+            color: #ffd700;
+            text-align: center;
+        }
+        .timer.warning { color: #ff6b6b; animation: blink 0.5s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+        .streak-badge {
+            background: linear-gradient(135deg, #ff6b6b, #ffd700);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .leaderboard {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 5px 0;
+        }
+        .leaderboard-item:nth-child(1) { background: linear-gradient(90deg, #ffd700, #ffed4a); color: #333; }
+        .leaderboard-item:nth-child(2) { background: linear-gradient(90deg, #c0c0c0, #e8e8e8); color: #333; }
+        .leaderboard-item:nth-child(3) { background: linear-gradient(90deg, #cd7f32, #daa520); color: #333; }
+        .rank { font-size: 24px; font-weight: bold; width: 50px; }
+        .avatar-small { font-size: 32px; margin-right: 10px; }
+        .points { margin-left: auto; font-weight: bold; }
+        .hint-box {
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px dashed #ffd700;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .hint-btn {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            border: none;
+            color: #333;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .match-game { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .match-item {
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .match-item:hover { transform: scale(1.05); }
+        .match-item.selected { border: 3px solid #ffd700; }
+        .match-item.matched { background: #38ef7d; pointer-events: none; }
+        .mystery-box {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            cursor: pointer;
+            animation: float 3s ease-in-out infinite;
+            transition: all 0.3s;
+        }
+        .mystery-box:hover { transform: scale(1.1); }
+        .mystery-box.opening {
+            animation: shake 0.5s ease;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .draggable {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            padding: 15px 25px;
+            border-radius: 10px;
+            cursor: grab;
+            display: inline-block;
+            margin: 5px;
+            font-weight: bold;
+            user-select: none;
+        }
+        .drop-zone {
+            border: 3px dashed #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 100px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+        .drop-zone.dragover { background: rgba(255, 215, 0, 0.2); }
+        .unlockable {
+            position: relative;
+            overflow: hidden;
+        }
+        .unlockable::after {
+            content: '🔒';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+        }
+        .unlockable.unlocked::after { content: '🔓'; }
+        .minigame-btn {
+            width: 100px;
+            height: 100px;
+            border-radius: 20px;
+            font-size: 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .minigame-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .minigame-btn span { font-size: 12px; }
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        .achievement {
+            background: linear-gradient(135deg, #ffd700, #ffed4a);
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #333;
+            font-weight: bold;
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            animation: fall 3s linear forwards;
+            z-index: 9999;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <h1 class="game-title mb-0">🚀 Math Adventure Journey</h1>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="streak-badge">
+                            <span>🔥</span> <span id="streakCount">0</span> Day Streak
+                        </div>
+                        <div class="player-info">
+                            <span class="player-avatar" id="playerAvatar">🧙‍♂️</span>
+                            <div>
+                                <div class="fw-bold" id="playerName">Math Wizard</div>
+                                <div class="small">Level: <span id="playerLevel">1</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avatar Selector Modal -->
+        <div class="modal fade" id="avatarModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content bg-dark">
+                    <div class="modal-header border-0">
+                        <h4 class="modal-title">Choose Your Avatar! 🦸</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="avatar-selector">
+                            <div class="avatar" data-avatar="🧙‍♂️">🧙‍♂️</div>
+                            <div class="avatar" data-avatar="🦸">🦸</div>
+                            <div class="avatar" data-avatar="🤖">🤖</div>
+                            <div class="avatar" data-avatar="🦊">🦊</div>
+                            <div class="avatar" data-avatar="🐱">🐱</div>
+                            <div class="avatar" data-avatar="🦁">🦁</div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <input type="text" class="form-control text-center" id="playerNameInput" placeholder="Enter your name" value="Math Wizard">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button class="btn btn-success w-100" onclick="saveAvatar()">Start Adventure! 🚀</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Math Mentor Modal -->
+        <div class="modal fade" id="mentorModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content bg-dark">
+                    <div class="modal-body">
+                        <div class="mentor-box">
+                            <span class="mentor-avatar" id="mentorAvatar">🧙‍♂️</span>
+                            <div class="mentor-message" id="mentorMessage">
+                                Welcome, brave learner! Ready for today's math adventure?
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-primary" data-bs-dismiss="modal">Let's Go! 🚀</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Modal -->
+        <div class="modal fade" id="feedbackModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content text-center" id="feedbackContent">
+                    <div class="modal-body py-5">
+                        <div style="font-size: 100px;" id="feedbackEmoji">🎉</div>
+                        <h2 id="feedbackText" class="mt-3">Amazing!</h2>
+                        <p id="feedbackSubtext"></p>
+                        <button class="btn btn-light btn-lg mt-3" data-bs-dismiss="modal">Continue</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Tabs -->
+        <ul class="nav nav-pills mb-4" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#map">🗺️ Adventure Map</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#games">🎮 Mini-Games</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#daily">🎁 Daily Challenge</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#leaderboard">🏆 Leaderboard</button></li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- Adventure Map -->
+            <div class="tab-pane fade show active" id="map">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="adventure-map mb-4">
+                            <h3 class="text-center mb-4">Choose Your Destination!</h3>
+                            <div class="progress-path flex-wrap">
+                                <div class="land unlocked current" data-land="addition" onclick="selectLand('addition')">
+                                    <span>➕</span>
+                                    <span class="land-label">Addition Island</span>
+                                </div>
+                                <div class="land unlocked" data-land="subtraction" onclick="selectLand('subtraction')">
+                                    <span>➖</span>
+                                    <span class="land-label">Subtraction Station</span>
+                                </div>
+                                <div class="land locked" data-land="multiplication" onclick="selectLand('multiplication')">
+                                    <span>✖️</span>
+                                    <span class="land-label">Multiply Mountain</span>
+                                </div>
+                                <div class="land locked" data-land="division" onclick="selectLand('division')">
+                                    <span>➗</span>
+                                    <span class="land-label">Division Desert</span>
+                                </div>
+                                <div class="land locked" data-land="shapes" onclick="selectLand('shapes')">
+                                    <span>🔷</span>
+                                    <span class="land-label">Geometry City</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Overall Progress -->
+                        <div class="card bg-dark bg-opacity-50 border-0">
+                            <div class="card-body">
+                                <h5>🚀 Mission Progress</h5>
+                                <div class="progress-bar-container rocket-progress">
+                                    <div class="progress-bar-fill" id="overallProgress" style="width: 20%;">
+                                        20%
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span>Beginner</span>
+                                    <span>Explorer</span>
+                                    <span>Master</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Achievements -->
+                        <div class="mt-4">
+                            <h5>🏅 Achievements</h5>
+                            <div id="achievements" class="d-flex flex-wrap gap-2">
+                                <div class="achievement">🌟 First Steps</div>
+                                <div class="achievement" style="opacity:0.3">🔥 7 Day Streak</div>
+                                <div class="achievement" style="opacity:0.3">🎯 Perfect Score</div>
+                                <div class="achievement" style="opacity:0.3">🚀 Level 5</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <!-- Math Mentor -->
+                        <div class="mentor-box mb-4">
+                            <span class="mentor-avatar">🧙‍♂️</span>
+                            <div>
+                                <h5 class="mb-2">Professor Numbers</h5>
+                                <div class="mentor-message" id="mentorTip">
+                                    Tip: Take your time with each question. Math is a journey, not a race!
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Quests -->
+                        <div class="card bg-dark bg-opacity-50 border-0">
+                            <div class="card-body">
+                                <h5>📜 Active Quests</h5>
+                                <div class="quest-card" id="quest1">
+                                    <div class="d-flex justify-content-between">
+                                        <span>🗺️ Explore Addition Island</span>
+                                        <span class="badge bg-warning">In Progress</span>
+                                    </div>
+                                    <div class="progress-bar-container mt-2">
+                                        <div class="progress-bar-fill" style="width: 50%;">50%</div>
+                                    </div>
+                                </div>
+                                <div class="quest-card completed">
+                                    <div class="d-flex justify-content-between">
+                                        <span>👋 Complete Tutorial</span>
+                                        <span class="badge bg-success">Done!</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mini-Games -->
+            <div class="tab-pane fade" id="games">
+                <h2 class="text-center mb-4">🎮 Choose Your Mini-Game!</h2>
+                <div class="row g-4">
+                    <div class="col-md-3 col-6">
+                        <button class="minigame-btn" onclick="startQuizGame()">
+                            <span>❓</span>
+                            <span>Quiz Challenge</span>
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <button class="minigame-btn" onclick="startMatchGame()">
+                            <span>🔗</span>
+                            <span>Match Pairs</span>
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <button class="minigame-btn" onclick="startDragGame()">
+                            <span>🖱️</span>
+                            <span>Drag & Drop</span>
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <button class="minigame-btn" onclick="startTimerGame()">
+                            <span>⏱️</span>
+                            <span>Beat the Clock</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="game-area mt-4" id="gameArea">
+                    <div class="text-center">
+                        <h3>Select a game to begin!</h3>
+                        <p class="text-muted">Click any mini-game above to start your adventure!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Challenge -->
+            <div class="tab-pane fade" id="daily">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <div class="card bg-dark bg-opacity-50 border-0 text-center">
+                            <div class="card-body py-5">
+                                <h2>🎁 Daily Math Surprise!</h2>
+                                <p class="text-muted">Complete today's challenge for bonus points!</p>
+                                
+                                <div class="mystery-box" id="mysteryBox" onclick="openMysteryBox()">
+                                    ❓
+                                </div>
+                                
+                                <div id="dailyChallenge" style="display: none;">
+                                    <h4 id="dailyQuestion" class="my-4"></h4>
+                                    <div id="dailyOptions" class="d-grid gap-2"></div>
+                                </div>
+                                
+                                <div id="dailyComplete" class="mt-4" style="display: none;">
+                                    <h3>🎉 Challenge Complete!</h3>
+                                    <p>+50 Bonus Points!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div class="tab-pane fade" id="leaderboard">
+                <div class="row">
+                    <div class="col-lg-6 mx-auto">
+                        <div class="leaderboard">
+                            <h3 class="text-center mb-4">🏆 Weekly Math Stars</h3>
+                            <div class="leaderboard-item">
+                                <span class="rank">🥇</span>
+                                <span class="avatar-small">🦸</span>
+                                <span>ChampionAlex</span>
+                                <span class="points">2,450 pts</span>
+                            </div>
+                            <div class="leaderboard-item">
+                                <span class="rank">🥈</span>
+                                <span class="avatar-small">🐱</span>
+                                <span>MathQueen</span>
+                                <span class="points">2,180 pts</span>
+                            </div>
+                            <div class="leaderboard-item">
+                                <span class="rank">🥉</span>
+                                <span class="avatar-small">🤖</span>
+                                <span>NumberNinja</span>
+                                <span class="points">1,950 pts</span>
+                            </div>
+                            <div class="leaderboard-item">
+                                <span class="rank">4</span>
+                                <span class="avatar-small" id="leaderAvatar">🧙‍♂️</span>
+                                <span id="leaderName">You</span>
+                                <span class="points" id="leaderPoints">850 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Game State
+        let gameState = {
+            name: 'Math Wizard',
+            avatar: '🧙‍♂️',
+            level: 1,
+            score: 0,
+            streak: 0,
+            currentLand: 'addition',
+            unlockedLands: ['addition', 'subtraction'],
+            points: 850
+        };
+
+        // Questions Database
+        const questions = {
+            addition: [
+                { q: "5 + 3 = ?", options: [6, 7, 8, 9], answer: 8 },
+                { q: "12 + 8 = ?", options: [18, 19, 20, 21], answer: 20 },
+                { q: "7 + 9 = ?", options: [14, 15, 16, 17], answer: 16 },
+                { q: "15 + 15 = ?", options: [28, 29, 30, 31], answer: 30 },
+                { q: "23 + 17 = ?", options: [38, 39, 40, 41], answer: 40 }
+            ],
+            subtraction: [
+                { q: "10 - 4 = ?", options: [4, 5, 6, 7], answer: 6 },
+                { q: "15 - 8 = ?", options: [5, 6, 7, 8], answer: 7 },
+                { q: "20 - 12 = ?", options: [6, 7, 8, 9], answer: 8 },
+                { q: "25 - 9 = ?", options: [14, 15, 16, 17], answer: 16 },
+                { q: "30 - 15 = ?", options: [13, 14, 15, 16], answer: 15 }
+            ],
+            multiplication: [
+                { q: "4 × 3 = ?", options: [10, 11, 12, 13], answer: 12 },
+                { q: "6 × 7 = ?", options: [36, 40, 42, 44], answer: 42 },
+                { q: "8 × 5 = ?", options: [35, 40, 45, 50], answer: 40 },
+                { q: "9 × 9 = ?", options: [72, 81, 90, 99], answer: 81 },
+                { q: "7 × 8 = ?", options: [48, 54, 56, 58], answer: 56 }
+            ],
+            division: [
+                { q: "20 ÷ 4 = ?", options: [4, 5, 6, 7], answer: 5 },
+                { q: "36 ÷ 6 = ?", options: [5, 6, 7, 8], answer: 6 },
+                { q: "45 ÷ 9 = ?", options: [4, 5, 6, 7], answer: 5 },
+                { q: "64 ÷ 8 = ?", options: [6, 7, 8, 9], answer: 8 },
+                { q: "81 ÷ 9 = ?", options: [7, 8, 9, 10], answer: 9 }
+            ],
+            shapes: [
+                { q: "How many sides does a triangle have?", options: [3, 4, 5, 6], answer: 3 },
+                { q: "How many corners does a square have?", options: [3, 4, 5, 6], answer: 4 },
+                { q: "How many sides does a hexagon have?", options: [5, 6, 7, 8], answer: 6 },
+                { q: "Which shape has no corners?", options: ["Circle", "Square", "Triangle", "Rectangle"], answer: "Circle" },
+                { q: "How many sides does a pentagon have?", options: [4, 5, 6, 7], answer: 5 }
+            ]
+        };
+
+        const mentorTips = [
+            "Remember: You can use your fingers to count!",
+            "Breaking problems into smaller parts helps a lot!",
+            "Practice makes perfect - you've got this!",
+            "Math is like a puzzle - enjoy solving it!",
+            "Don't rush - think carefully!",
+            "Every expert was once a beginner!"
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const avatarModal = new bootstrap.Modal(document.getElementById('avatarModal'));
+            avatarModal.show();
+
+            document.querySelectorAll('.avatar').forEach(avatar => {
+                avatar.addEventListener('click', function() {
+                    document.querySelectorAll('.avatar').forEach(a => a.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+
+            // Mentor greeting after 3 seconds
+            setTimeout(() => {
+                const mentorModal = new bootstrap.Modal(document.getElementById('mentorModal'));
+                mentorModal.show();
+            }, 3000);
+        });
+
+        function saveAvatar() {
+            const selected = document.querySelector('.avatar.selected');
+            gameState.avatar = selected ? selected.dataset.avatar : '🧙‍♂️';
+            gameState.name = document.getElementById('playerNameInput').value || 'Math Wizard';
+            
+            document.getElementById('playerAvatar').textContent = gameState.avatar;
+            document.getElementById('playerName').textContent = gameState.name;
+            document.getElementById('leaderAvatar').textContent = gameState.avatar;
+            document.getElementById('leaderName').textContent = gameState.name;
+
+            bootstrap.Modal.getInstance(document.getElementById('avatarModal')).hide();
+            showFeedback(true, "Let's Go!", `Welcome, ${gameState.name}! Your adventure begins now! 🚀`, '🎊');
+        }
+
+        function selectLand(land) {
+            if (!gameState.unlockedLands.includes(land)) {
+                showFeedback(false, "Locked!", "Complete more challenges to unlock this land! 🔒", '😢');
+                return;
+            }
+            gameState.currentLand = land;
+            document.querySelectorAll('.land').forEach(l => l.classList.remove('current'));
+            document.querySelector(`[data-land="${land}"]`).classList.add('current');
+            startQuizGame();
+        }
+
+        function showFeedback(isCorrect, title, message, emoji) {
+            const content = document.getElementById('feedbackContent');
+            content.style.background = isCorrect ? 
+                'linear-gradient(135deg, #11998e, #38ef7d)' : 
+                'linear-gradient(135deg, #eb3349, #f45c43)';
+            
+            document.getElementById('feedbackEmoji').textContent = emoji;
+            document.getElementById('feedbackText').textContent = title;
+            document.getElementById('feedbackSubtext').textContent = message;
+
+            const modal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+            modal.show();
+
+            if (isCorrect) {
+                createConfetti();
+                playSound('correct');
+            } else {
+                playSound('incorrect');
+            }
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.background = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'][Math.floor(Math.random() * 5)];
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        function playSound(type) {
+            // Sound effects (simulated with beeps using Web Audio API)
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            if (type === 'correct') {
+                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+            } else {
+                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+            }
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Quiz Game
+        let currentQuestion = 0;
+        let quizQuestions = [];
+
+        function startQuizGame() {
+            currentQuestion = 0;
+            quizQuestions = shuffleArray([...questions[gameState.currentLand]]);
+            renderQuizQuestion();
+            document.getElementById('games').classList.add('show', 'active');
+            document.getElementById('map').classList.remove('show', 'active');
+            document.querySelector('[data-bs-target="#games"]').click();
+        }
+
+        function renderQuizQuestion() {
+            const q = quizQuestions[currentQuestion];
+            const options = shuffleArray(q.options);
+            
+            let optionsHTML = options.map(opt => 
+                `<button class="btn btn-outline-light option-btn" onclick="checkAnswer(this, ${opt})">${opt}</button>`
+            ).join('');
+
+            document.getElementById('gameArea').innerHTML = `
+                <div class="text-center">
+                    <h4 class="mb-4">Question ${currentQuestion + 1} of ${quizQuestions.length}</h4>
+                    <h2 class="mb-4">${q.q}</h2>
+                    <div class="d-grid gap-2" style="max-width: 400px; margin: 0 auto;">
+                        ${optionsHTML}
+                    </div>
+                    <div class="hint-box mt-4">
+                        <button class="hint-btn" onclick="showHint()">💡 Need a Hint?</button>
+                        <p class="mt-2" id="hintText" style="display: none;"></p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showHint() {
+            const hints = [
+                "Try counting on your fingers!",
+                "Break it into smaller parts!",
+                "Draw a picture to help!",
+                "Use objects to count!"
+            ];
+            document.getElementById('hintText').textContent = hints[Math.floor(Math.random() * hints.length)];
+            document.getElementById('hintText').style.display = 'block';
+        }
+
+        function checkAnswer(btn, selected) {
+            const correct = quizQuestions[currentQuestion].answer;
+            const isCorrect = selected === correct;
+            
+            btn.classList.add(isCorrect ? 'correct' : 'incorrect');
+            
+            if (isCorrect) {
+                gameState.score += 10;
+                gameState.points += 10;
+                gameState.streak++;
+                document.getElementById('streakCount').textContent = gameState.streak;
+                document.getElementById('leaderPoints').textContent = gameState.points + ' pts';
+                
+                const messages = [
+                    { title: "Excellent!", msg: "You're a math genius!", emoji: "🌟" },
+                    { title: "Fantastic!", msg: "Keep up the great work!", emoji: "🎉" },
+                    { title: "Brilliant!", msg: "You're on fire!", emoji: "🔥" },
+                    { title: "Super Star!", msg: "Nothing can stop you!", emoji: "⭐" }
+                ];
+                const msg = messages[Math.floor(Math.random() * messages.length)];
+                showFeedback(true, msg.title, msg.msg, msg.emoji);
+                
+                // Update mentor tip
+                document.getElementById('mentorTip').textContent = mentorTips[Math.floor(Math.random() * mentorTips.length)];
+            } else {
+                btn.textContent = selected + ' ❌';
+                document.querySelectorAll('.option-btn').forEach(b => {
+                    if (parseInt(b.textContent) === correct || b.textContent === correct) {
+                        b.classList.add('correct');
+                    }
+                });
+                showFeedback(false, "Try Again!", `The correct answer was ${correct}`, "💪");
+            }
+
+            setTimeout(() => {
+                currentQuestion++;
+                if (currentQuestion < quizQuestions.length) {
+                    renderQuizQuestion();
+                } else {
+                    endQuiz();
+                }
+            }, 1500);
+        }
+
+        function endQuiz() {
+            const percentage = (gameState.score / (quizQuestions.length * 10)) * 100;
+            let levelUp = '';
+            let unlock = '';
+            
+            if (percentage >= 80 && gameState.level < 3) {
+                gameState.level++;
+                levelUp = `🎉 LEVEL UP! You're now Level ${gameState.level}!`;
+            }
+            
+            if (percentage >= 100) {
+                unlock = '🔓 New land unlocked!';
+            }
+
+            document.getElementById('playerLevel').textContent = gameState.level;
+            document.getElementById('overallProgress').style.width = (gameState.level * 25) + '%';
+            document.getElementById('overallProgress').textContent = (gameState.level * 25) + '%';
+
+            document.getElementById('gameArea').innerHTML = `
+                <div class="text-center">
+                    <h2>🎊 Quiz Complete!</h2>
+                    <h3>Score: ${gameState.score} / ${quizQuestions.length * 10}</h3>
+                    <h4>${percentage >= 80 ? '🏆' : '👍'} ${percentage >= 80 ? 'Amazing!' : 'Good effort!'}</h4>
+                    ${levelUp ? `<h3 class="text-warning mt-3">${levelUp}</h3>` : ''}
+                    ${unlock ? `<h4 class="text-success mt-3">${unlock}</h4>` : ''}
+                    <button class="btn btn-primary btn-lg mt-4" onclick="startQuizGame()">Play Again!</button>
+                </div>
+            `;
+            
+            createConfetti();
+        }
+
+        // Match Game
+        function startMatchGame() {
+            const pairs = [
+                { num: '2', word: 'Two' },
+                { num: '5', word: 'Five' },
+                { num: '10', word: 'Ten' },
+                { num: '7', word: 'Seven' }
+            ];
+            
+            const items = shuffleArray([...pairs, ...pairs]);
+            let matched = 0;
+            let first = null;
+
+            document.getElementById('gameArea').innerHTML = `
+                <h3 class="text-center mb-4">🔗 Match Numbers with Words!</h3>
+                <div class="match-game" id="matchGrid"></div>
+            `;
+
+            const grid = document.getElementById('matchGrid');
+            items.forEach((item, i) => {
+                const div = document.createElement('div');
+                div.className = 'match-item';
+                div.dataset.num = item.num;
+                div.dataset.word = item.word;
+                div.textContent = '?';
+                div.onclick = () => {
+                    if (div.classList.contains('matched') || div.classList.contains('selected')) return;
+                    
+                    div.textContent = item.num || item.word;
+                    div.classList.add('selected');
+
+                    if (!first) {
+                        first = div;
+                    } else {
+                        if (first.dataset.num === div.dataset.num || first.dataset.word === div.dataset.word) {
+                            if (first !== div) {
+                                div.classList.add('matched');
+                                first.classList.add('matched');
+                                matched++;
+                                if (matched === pairs.length) {
+                                    showFeedback(true, "Perfect Match!", "You matched all pairs!", "🎉");
+                                }
+                            }
+                        } else {
+                            setTimeout(() => {
+                                div.textContent = '?';
+                                first.textContent = '?';
+                                div.classList.remove('selected');
+                                first.classList.remove('selected');
+                            }, 1000);
+                        }
+                        first = null;
+                    }
+                };
+                grid.appendChild(div);
+            });
+        }
+
+        // Drag and Drop Game
+        function startDragGame() {
+            const problems = [
+                { q: '5 + ? = 8', answer: 3, options: [2, 3, 4] },
+                { q: '10 - ? = 6', answer: 4, options: [3, 4, 5] },
+                { q: '? + 7 = 15', answer: 8, options: [6, 7, 8] }
+            ];
+
+            document.getElementById('gameArea').innerHTML = `
+                <h3 class="text-center mb-4">🖱️ Drag the Answer!</h3>
+                <div class="text-center mb-4">
+                    <h2 id="dragQuestion">${problems[0].q}</h2>
+                </div>
+                <div class="drop-zone" id="dropZone">Drop answer here!</div>
+                <div class="text-center mt-4" id="dragOptions"></div>
+            `;
+
+            let currentProblem = 0;
+            const opts = shuffleArray(problems[0].options);
+
+            document.getElementById('dragOptions').innerHTML = opts.map(opt => 
+                `<div class="draggable" draggable="true" data-value="${opt}">${opt}</div>`
+            ).join('');
+
+            document.querySelectorAll('.draggable').forEach(el => {
+                el.ondragstart = (e) => e.dataTransfer.setData('text', el.dataset.value);
+            });
+
+            const dropZone = document.getElementById('dropZone');
+            dropZone.ondragover = (e) => e.preventDefault();
+            dropZone.ondrop = (e) => {
+                e.preventDefault();
+                const value = parseInt(e.dataTransfer.getData('text'));
+                if (value === problems[currentProblem].answer) {
+                    dropZone.innerHTML = `<h3 class="text-success">✓ ${value}</h3>`;
+                    showFeedback(true, "Correct!", "Great job!", "🎉");
+                    currentProblem++;
+                    if (currentProblem < problems.length) {
+                        setTimeout(() => {
+                            document.getElementById('dragQuestion').textContent = problems[currentProblem].q;
+                            const newOpts = shuffleArray(problems[currentProblem].options);
+                            document.getElementById('dragOptions').innerHTML = newOpts.map(opt => 
+                                `<div class="draggable" draggable="true" data-value="${opt}">${opt}</div>`
+                            ).join('');
+                            dropZone.innerHTML = 'Drop answer here!';
+                            document.querySelectorAll('.draggable').forEach(el => {
+                                el.ondragstart = (e) => e.dataTransfer.setData('text', el.dataset.value);
+                            });
+                        }, 1500);
+                    } else {
+                        setTimeout(() => {
+                            showFeedback(true, "All Done!", "You completed all drag challenges!", "🏆");
+                        }, 1500);
+                    }
+                } else {
+                    dropZone.innerHTML = `<h3 class="text-danger">✗ Try Again!</h3>`;
+                    setTimeout(() => {
+                        dropZone.innerHTML = 'Drop answer here!';
+                    }, 1000);
+                }
+            };
+        }
+
+        // Timer Game
+        function startTimerGame() {
+            let timeLeft = 30;
+            let score = 0;
+            let currentQ = 0;
+            const allQuestions = shuffleArray([...questions.addition, ...questions.subtraction]);
+            
+            document.getElementById('gameArea').innerHTML = `
+                <div class="text-center">
+                    <div class="timer" id="timerDisplay">30</div>
+                    <h4 class="mb-4">Beat the Clock!</h4>
+                    <h2 id="timerQuestion">${allQuestions[0].q}</h2>
+                    <div class="d-grid gap-2" style="max-width: 400px; margin: 20px auto;" id="timerOptions"></div>
+                </div>
+            `;
+
+            const timer = setInterval(() => {
+                timeLeft--;
+                const display = document.getElementById('timerDisplay');
+                display.textContent = timeLeft;
+                if (timeLeft <= 10) display.classList.add('warning');
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    showFeedback(true, "Time's Up!", `Final Score: ${score} points!`, "⏱️");
+                }
+            }, 1000);
+
+            function renderTimerQuestion() {
+                const q = allQuestions[currentQ];
+                const opts = shuffleArray(q.options);
+                document.getElementById('timerQuestion').textContent = q.q;
+                document.getElementById('timerOptions').innerHTML = opts.map(opt => 
+                    `<button class="btn btn-outline-light option-btn" onclick="checkTimerAnswer(this, ${opt}, ${q.answer})">${opt}</button>`
+                ).join('');
+            }
+
+            window.checkTimerAnswer = (btn, selected, correct) => {
+                if (selected === correct) {
+                    score += 5;
+                    btn.classList.add('correct');
+                    playSound('correct');
+                } else {
+                    btn.classList.add('incorrect');
+                }
+                currentQ++;
+                if (currentQ < allQuestions.length && timeLeft > 0) {
+                    setTimeout(renderTimerQuestion, 500);
+                }
+            };
+
+            renderTimerQuestion();
+        }
+
+        // Daily Challenge
+        function openMysteryBox() {
+            const box = document.getElementById('mysteryBox');
+            box.classList.add('opening');
+            
+            setTimeout(() => {
+                box.textContent = '🎁';
+                const q = questions.addition[Math.floor(Math.random() * questions.addition.length)];
+                document.getElementById('dailyQuestion').textContent = q.q;
+                
+                const opts = shuffleArray(q.options);
+                document.getElementById('dailyOptions').innerHTML = opts.map(opt => 
+                    `<button class="btn btn-light option-btn" onclick="checkDailyAnswer(this, ${opt}, ${q.answer})">${opt}</button>`
+                ).join('');
+                
+                document.getElementById('dailyChallenge').style.display = 'block';
+            }, 500);
+        }
+
+        window.checkDailyAnswer = (btn, selected, correct) => {
+            if (selected === correct) {
+                btn.classList.add('correct');
+                gameState.points += 50;
+                document.getElementById('leaderPoints').textContent = gameState.points + ' pts';
+                document.getElementById('dailyComplete').style.display = 'block';
+                document.getElementById('mysteryBox').style.display = 'none';
+                showFeedback(true, "Bonus Earned!", "+50 points added to your total!", "🎁");
+            } else {
+                btn.classList.add('incorrect');
+                document.querySelectorAll('#dailyOptions .btn').forEach(b => {
+                    if (parseInt(b.textContent) === correct) b.classList.add('correct');
+                });
+                showFeedback(false, "Almost!", "The answer was " + correct, "💪");
+            }
+        };
+    </script>
+</body>
+
+</html>

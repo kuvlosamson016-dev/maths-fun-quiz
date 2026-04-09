@@ -1,0 +1,5 @@
+node_modules/
+.DS_Store
+courseware_1_old_locked/
+*.log
+npm-debug.log*
